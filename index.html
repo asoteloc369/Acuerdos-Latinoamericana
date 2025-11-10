@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Acuerdos - Latinoamericana (Con IA)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #1e3c72;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #DAA520;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upload-zone {
+            border: 3px dashed #DAA520;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .upload-zone:hover {
+            border-color: #1e3c72;
+            background: #e8f4ff;
+        }
+
+        .upload-zone.dragging {
+            border-color: #1e3c72;
+            background: #e8f4ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-preview {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0f8ff;
+            border-radius: 10px;
+            border: 2px solid #DAA520;
+            display: none;
+        }
+
+        .file-preview.active {
+            display: block;
+        }
+
+        .preview-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #DAA520;
+        }
+
+        .preview-icon {
+            font-size: 3em;
+        }
+
+        .preview-info h3 {
+            color: #1e3c72;
+            margin-bottom: 5px;
+        }
+
+        .preview-info p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .preview-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #1e3c72;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #152b54;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30, 60, 114, 0.3);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #218838;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #1e3c72;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #1e3c72;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert.active {
+            display: flex;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 2px solid #17a2b8;
+            color: #0c5460;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1e3c72;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .service-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .service-tab {
+            flex: 1;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .service-tab:hover {
+            border-color: #1e3c72;
+            background: #e8f4ff;
+        }
+
+        .service-tab.active {
+            background: #1e3c72;
+            color: white;
+            border-color: #1e3c72;
+        }
+
+        .service-tab-icon {
+            font-size: 2em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .expediente-info {
+            background: #f0f8ff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #DAA520;
+            margin-bottom: 20px;
+        }
+
+        .expediente-number {
+            font-size: 1.5em;
+            color: #1e3c72;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .expediente-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .expediente-detail {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .expediente-detail-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .expediente-detail-value {
+            font-weight: 600;
+            color: #1e3c72;
+        }
+
+        .processing-status {
+            background: #fff9e6;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .processing-status.active {
+            display: block;
+        }
+
+        .processing-steps {
+            margin-top: 15px;
+        }
+
+        .processing-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .processing-step.completed {
+            opacity: 0.6;
+        }
+
+        .processing-step.active {
+            border: 2px solid #1e3c72;
+            font-weight: 600;
+        }
+
+        .step-icon {
+            font-size: 1.5em;
+        }
+
+        .confidence-indicator {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .confidence-high {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .confidence-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .confidence-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .service-tabs {
+                flex-direction: column;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏛️ Sistema de Acuerdos y Expedientes</h1>
+            <p>Latinoamericana Recinto Funeral</p>
+            <span class="badge">🤖 IA Activada - Extracción Automática</span>
+        </div>
+
+        <div id="alertBox" class="alert">
+            <span id="alertIcon"></span>
+            <span id="alertMessage"></span>
+        </div>
+
+        <div class="card" id="serviceTipeCard">
+            <div class="section-title">
+                📋 Paso 1: Tipo de Servicio
+            </div>
+            
+            <div class="service-tabs">
+                <div class="service-tab active" data-type="NI" onclick="selectServiceType('NI')">
+                    <span class="service-tab-icon">💼</span>
+                    <div>Necesidad Inmediata (NI)</div>
+                    <small style="color: #666;">Sin contrato previo</small>
+                </div>
+                <div class="service-tab" data-type="PABS" onclick="selectServiceType('PABS')">
+                    <span class="service-tab-icon">📑</span>
+                    <div>Servicio PABS</div>
+                    <small style="color: #666;">Con contrato de previsión</small>
+                </div>
+            </div>
+
+            <div id="serviceTypeInfo" style="padding: 15px; background: #f8f9fa; border-radius: 8px; margin-top: 15px;">
+                <strong>📝 Documentos a subir:</strong>
+                <p id="docsRequired">1 documento: Formato de Acuerdos firmado</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                📤 Paso 2: Subir Formato de Acuerdos
+            </div>
+
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">📄</div>
+                <div class="upload-text">Haz clic o arrastra el archivo aquí</div>
+                <div class="upload-hint">Formatos aceptados: JPG, PNG, PDF (Máx. 10MB)</div>
+            </div>
+
+            <input type="file" id="fileInput" class="file-input" accept="image/*,.pdf">
+
+            <div class="file-preview" id="filePreview">
+                <div class="preview-header">
+                    <div class="preview-icon">✅</div>
+                    <div class="preview-info">
+                        <h3 id="fileName">Archivo cargado</h3>
+                        <p id="fileDetails">Tamaño: 0 KB</p>
+                    </div>
+                </div>
+                <img id="previewImage" class="preview-image" style="display: none;" alt="Vista previa">
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="processBtn" onclick="processDocument()">
+                        🤖 Extraer Datos con IA
+                    </button>
+                    <button class="btn" onclick="clearFile()" style="background: #6c757d; color: white;">
+                        ❌ Cambiar Archivo
+                    </button>
+                </div>
+            </div>
+
+            <div class="processing-status" id="processingStatus">
+                <h4 style="color: #1e3c72; margin-bottom: 15px;">🔄 Procesando con Inteligencia Artificial...</h4>
+                <div class="processing-steps" id="processingSteps">
+                    <div class="processing-step" id="step1">
+                        <span class="step-icon">📤</span>
+                        <span>Subiendo documento a Google Cloud...</span>
+                    </div>
+                    <div class="processing-step" id="step2">
+                        <span class="step-icon">🔍</span>
+                        <span>Extrayendo texto con OCR (Google Vision)...</span>
+                    </div>
+                    <div class="processing-step" id="step3">
+                        <span class="step-icon">🤖</span>
+                        <span>Analizando datos con Gemini AI...</span>
+                    </div>
+                    <div class="processing-step" id="step4">
+                        <span class="step-icon">📋</span>
+                        <span>Estructurando información...</span>
+                    </div>
+                    <div class="processing-step" id="step5">
+                        <span class="step-icon">✅</span>
+                        <span>Llenando formulario automáticamente...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="loading" id="loadingBox">
+                <div class="spinner"></div>
+                <p>Procesando documento...</p>
+                <small>Esto puede tomar 10-30 segundos</small>
+            </div>
+        </div>
+
+        <div class="card form-section" id="formSection">
+            <div class="expediente-info">
+                <div class="expediente-number" id="expedienteNumber">📁 Expediente: EXP-2024-00001</div>
+                <div class="expediente-details">
+                    <div class="expediente-detail">
+                        <span class="expediente-detail-label">Tipo de Servicio</span>
+                        <span class="expediente-detail-value" id="expedienteTipo">Necesidad Inmediata</span>
+                    </div>
+                    <div class="expediente-detail">
+                        <span class="expediente-detail-label">Fecha de Creación</span>
+                        <span class="expediente-detail-value" id="expedienteFecha">-</span>
+                    </div>
+                    <div class="expediente-detail">
+                        <span class="expediente-detail-label">Status</span>
+                        <span class="expediente-detail-value" style="color: #28a745;">● Datos Extraídos</span>
+                    </div>
+                    <div class="expediente-detail">
+                        <span class="expediente-detail-label">Confianza IA</span>
+                        <span class="expediente-detail-value" id="confidenceLevel">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info active" style="margin-bottom: 20px;">
+                <span>ℹ️</span>
+                <span><strong>Instrucciones:</strong> Los datos fueron extraídos automáticamente por IA. Por favor verifica que toda la información sea correcta y corrige cualquier error antes de guardar.</span>
+            </div>
+
+            <div class="section-title">
+                ✏️ Paso 3: Validar y Corregir Datos Extraídos
+            </div>
+
+            <form id="expedienteForm">
+                <h3 style="color: #1e3c72; margin-bottom: 15px; margin-top: 20px;">👤 Datos del Finado</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombre Completo * <span id="conf_finado_nombre"></span></label>
+                        <input type="text" id="finado_nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Edad * <span id="conf_finado_edad"></span></label>
+                        <input type="text" id="finado_edad" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Nacimiento <span id="conf_finado_fecha_nacimiento"></span></label>
+                        <input type="text" id="finado_fecha_nacimiento" placeholder="DD/MM/AAAA">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Defunción * <span id="conf_finado_fecha_defuncion"></span></label>
+                        <input type="text" id="finado_fecha_defuncion" required placeholder="DD/MM/AAAA">
+                    </div>
+                    <div class="form-group">
+                        <label>CURP <span id="conf_finado_curp"></span></label>
+                        <input type="text" id="finado_curp" maxlength="18">
+                    </div>
+                    <div class="form-group">
+                        <label>Lugar de Defunción * <span id="conf_finado_lugar_defuncion"></span></label>
+                        <input type="text" id="finado_lugar_defuncion" required>
+                    </div>
+                </div>
+
+                <h3 style="color: #1e3c72; margin-bottom: 15px; margin-top: 30px;">👨‍👩‍👧 Datos del Responsable</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombre Completo * <span id="conf_responsable_nombre"></span></label>
+                        <input type="text" id="responsable_nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Parentesco * <span id="conf_responsable_parentesco"></span></label>
+                        <input type="text" id="responsable_parentesco" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono * <span id="conf_responsable_telefono"></span></label>
+                        <input type="tel" id="responsable_telefono" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email <span id="conf_responsable_email"></span></label>
+                        <input type="email" id="responsable_email">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Dirección Completa * <span id="conf_responsable_direccion"></span></label>
+                    <input type="text" id="responsable_direccion" required>
+                </div>
+
+                <h3 style="color: #1e3c72; margin-bottom: 15px; margin-top: 30px;">🏛️ Datos del Servicio</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Folio</label>
+                        <input type="text" id="servicio_folio" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Servicio * <span id="conf_servicio_tipo"></span></label>
+                        <select id="servicio_tipo" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="Básico">Básico</option>
+                            <option value="Estándar">Estándar</option>
+                            <option value="Premium">Premium</option>
+                            <option value="Imperial">Imperial</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Capilla * <span id="conf_servicio_capilla"></span></label>
+                        <select id="servicio_capilla" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="Capilla Principal">Capilla Principal</option>
+                            <option value="Capilla Pequeña">Capilla Pequeña</option>
+                            <option value="Sala de Velación">Sala de Velación</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha del Servicio * <span id="conf_servicio_fecha"></span></label>
+                        <input type="text" id="servicio_fecha" required placeholder="DD/MM/AAAA">
+                    </div>
+                    <div class="form-group">
+                        <label>Horario * <span id="conf_servicio_horario"></span></label>
+                        <input type="text" id="servicio_horario" required placeholder="00:00 - 00:00">
+                    </div>
+                    <div class="form-group">
+                        <label>Costo Total * <span id="conf_servicio_costo"></span></label>
+                        <input type="text" id="servicio_costo" required placeholder="$0.00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Observaciones</label>
+                    <textarea id="servicio_observaciones" rows="3"></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-success">
+                        💾 Guardar Expediente Validado
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="exportarCSV()">
+                        📊 Exportar a CSV
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="exportarJSON()">
+                        📄 Exportar a JSON
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ===================================================================
+        // CONFIGURACIÓN DE APIs - MANTENER ESTAS KEYS SEGURAS
+        // ===================================================================
+        const API_KEYS = {
+            GOOGLE_VISION: 'AIzaSyCZn3hG4VVaW6nc8ocs-yMuX3v9BeHRjew',
+            GEMINI_AI: 'AIzaSyDg2wwukAcfLnhZvENUx1Y39hq8QSjuMRQ'
+        };
+
+        // Variables globales
+        let currentFile = null;
+        let serviceType = 'NI';
+        let currentExpediente = null;
+        let extractedText = '';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setupUploadZone();
+            generateExpedienteNumber();
+        });
+
+        // ===================================================================
+        // SELECCIÓN DE TIPO DE SERVICIO
+        // ===================================================================
+        function selectServiceType(type) {
+            serviceType = type;
+            
+            document.querySelectorAll('.service-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+
+            const docsText = type === 'PABS' 
+                ? '2 documentos: 1) Formato de Acuerdos firmado, 2) Captura del sistema PABS'
+                : '1 documento: Formato de Acuerdos firmado';
+            document.getElementById('docsRequired').textContent = docsText;
+            
+            document.getElementById('expedienteTipo').textContent = 
+                type === 'PABS' ? 'Servicio PABS' : 'Necesidad Inmediata';
+        }
+
+        // ===================================================================
+        // ZONA DE CARGA DE ARCHIVOS
+        // ===================================================================
+        function setupUploadZone() {
+            const uploadZone = document.getElementById('uploadZone');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadZone.addEventListener('click', () => fileInput.click());
+
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('dragging');
+            });
+
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('dragging');
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragging');
+                if (e.dataTransfer.files.length > 0) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFile(e.target.files[0]);
+                }
+            });
+        }
+
+        function handleFile(file) {
+            const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+            if (!validTypes.includes(file.type)) {
+                showAlert('error', '❌ Tipo de archivo no válido. Usa JPG, PNG o PDF.');
+                return;
+            }
+
+            const maxSize = 10 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showAlert('error', '❌ Archivo demasiado grande. Máximo 10MB.');
+                return;
+            }
+
+            currentFile = file;
+
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileDetails').textContent = 
+                `Tamaño: ${(file.size / 1024).toFixed(2)} KB • Tipo: ${file.type}`;
+
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const previewImg = document.getElementById('previewImage');
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('previewImage').style.display = 'none';
+            }
+
+            document.getElementById('filePreview').classList.add('active');
+            showAlert('success', '✅ Archivo cargado. Haz clic en "Extraer Datos con IA" para procesar.');
+        }
+
+        function clearFile() {
+            currentFile = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('filePreview').classList.remove('active');
+            document.getElementById('previewImage').style.display = 'none';
+            document.getElementById('formSection').classList.remove('active');
+        }
+
+        // ===================================================================
+        // PROCESAMIENTO CON IA
+        // ===================================================================
+        async function processDocument() {
+            if (!currentFile) {
+                showAlert('error', '❌ No hay archivo para procesar.');
+                return;
+            }
+
+            const processingStatus = document.getElementById('processingStatus');
+            processingStatus.classList.add('active');
+            document.getElementById('processBtn').disabled = true;
+
+            try {
+                // Paso 1: Extraer texto con Google Vision OCR
+                await updateProcessingStep(1, 'active');
+                const extractedText = await extractTextWithVision(currentFile);
+                await updateProcessingStep(1, 'completed');
+
+                if (!extractedText || extractedText.trim().length === 0) {
+                    throw new Error('No se pudo extraer texto del documento. Verifica la calidad de la imagen.');
+                }
+
+                // Paso 2: Analizar con Gemini AI
+                await updateProcessingStep(2, 'completed');
+                await updateProcessingStep(3, 'active');
+                const datosExtraidos = await extractDataWithGemini(extractedText);
+                await updateProcessingStep(3, 'completed');
+
+                // Paso 3: Estructurar y llenar formulario
+                await updateProcessingStep(4, 'active');
+                await sleep(500);
+                await updateProcessingStep(4, 'completed');
+                
+                await updateProcessingStep(5, 'active');
+                llenarFormulario(datosExtraidos);
+                await updateProcessingStep(5, 'completed');
+
+                // Mostrar formulario
+                document.getElementById('formSection').classList.add('active');
+                document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
+
+                showAlert('success', '✅ Datos extraídos exitosamente. Por favor valida la información.');
+
+            } catch (error) {
+                console.error('Error en procesamiento:', error);
+                showAlert('error', '❌ Error: ' + error.message);
+            } finally {
+                processingStatus.classList.remove('active');
+                document.getElementById('processBtn').disabled = false;
+                resetProcessingSteps();
+            }
+        }
+
+        async function updateProcessingStep(stepNumber, status) {
+            const step = document.getElementById(`step${stepNumber}`);
+            step.className = 'processing-step ' + status;
+            await sleep(300);
+        }
+
+        function resetProcessingSteps() {
+            for (let i = 1; i <= 5; i++) {
+                const step = document.getElementById(`step${i}`);
+                step.className = 'processing-step';
+            }
+        }
+
+        // ===================================================================
+        // GOOGLE CLOUD VISION - EXTRACCIÓN DE TEXTO (OCR)
+        // ===================================================================
+        async function extractTextWithVision(file) {
+            try {
+                // Convertir archivo a base64
+                const base64Image = await fileToBase64(file);
+                
+                // Llamar a Google Vision API
+                const response = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${API_KEYS.GOOGLE_VISION}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        requests: [{
+                            image: {
+                                content: base64Image
+                            },
+                            features: [{
+                                type: 'DOCUMENT_TEXT_DETECTION',
+                                maxResults: 1
+                            }]
+                        }]
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Error en Google Vision: ${errorData.error?.message || 'Error desconocido'}`);
+                }
+
+                const data = await response.json();
+                
+                if (!data.responses || !data.responses[0] || !data.responses[0].fullTextAnnotation) {
+                    throw new Error('No se detectó texto en el documento');
+                }
+
+                const extractedText = data.responses[0].fullTextAnnotation.text;
+                console.log('Texto extraído:', extractedText);
+                
+                return extractedText;
+
+            } catch (error) {
+                console.error('Error en Vision API:', error);
+                throw error;
+            }
+        }
+
+        // ===================================================================
+        // GEMINI AI - EXTRACCIÓN INTELIGENTE DE DATOS
+        // ===================================================================
+        async function extractDataWithGemini(text) {
+            try {
+                const prompt = `Eres un asistente experto en extraer datos de formatos de acuerdos funerarios de Latinoamericana Recinto Funeral.
+
+A continuación te proporciono el texto extraído de un formato de acuerdos. Tu tarea es identificar y extraer TODA la información relevante y estructurarla en formato JSON.
+
+TEXTO DEL DOCUMENTO:
+${text}
+
+INSTRUCCIONES CRÍTICAS:
+1. Extrae TODOS los datos que encuentres relacionados con:
+   - Finado: nombre completo, edad, fecha de nacimiento, fecha de defunción, CURP, lugar de defunción
+   - Responsable/Declarante: nombre completo, parentesco, teléfono, email, dirección
+   - Servicio: tipo de servicio, capilla, fecha del servicio, horario, costo total
+
+2. Si un campo no está en el documento, usa una cadena vacía ""
+3. Para fechas, usa formato DD/MM/AAAA
+4. Para teléfonos, mantén el formato original
+5. Para costos, incluye el símbolo $ y formato con comas
+
+IMPORTANTE: Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional antes o después. El JSON debe tener exactamente esta estructura:
+
+{
+  "finado": {
+    "nombre": "",
+    "edad": "",
+    "fecha_nacimiento": "",
+    "fecha_defuncion": "",
+    "curp": "",
+    "lugar_defuncion": ""
+  },
+  "responsable": {
+    "nombre": "",
+    "parentesco": "",
+    "telefono": "",
+    "email": "",
+    "direccion": ""
+  },
+  "servicio": {
+    "tipo": "",
+    "capilla": "",
+    "fecha": "",
+    "horario": "",
+    "costo": "",
+    "observaciones": ""
+  },
+  "confidence": {
+    "overall": 0.0,
+    "finado_nombre": 0.0,
+    "finado_edad": 0.0,
+    "responsable_nombre": 0.0,
+    "servicio_tipo": 0.0
+  }
+}
+
+El campo "confidence" debe contener valores entre 0.0 y 1.0 indicando tu nivel de confianza en la extracción de cada dato (1.0 = muy seguro, 0.5 = incierto, 0.0 = no encontrado).`;
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEYS.GEMINI_AI}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: prompt
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.1,
+                            maxOutputTokens: 2048,
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Error en Gemini AI: ${errorData.error?.message || 'Error desconocido'}`);
+                }
+
+                const data = await response.json();
+                
+                if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                    throw new Error('No se recibió respuesta de Gemini AI');
+                }
+
+                let responseText = data.candidates[0].content.parts[0].text;
+                console.log('Respuesta de Gemini:', responseText);
+
+                // Limpiar la respuesta por si tiene markdown o texto extra
+                responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+                const datosExtraidos = JSON.parse(responseText);
+                
+                // Calcular confianza general
+                if (datosExtraidos.confidence) {
+                    const confidenceValues = Object.values(datosExtraidos.confidence);
+                    const avgConfidence = confidenceValues.reduce((a, b) => a + b, 0) / confidenceValues.length;
+                    
+                    let confidenceText = '';
+                    if (avgConfidence >= 0.8) {
+                        confidenceText = '🟢 Alta (>80%)';
+                    } else if (avgConfidence >= 0.6) {
+                        confidenceText = '🟡 Media (60-80%)';
+                    } else {
+                        confidenceText = '🔴 Baja (<60%)';
+                    }
+                    
+                    document.getElementById('confidenceLevel').textContent = confidenceText;
+                }
+
+                return datosExtraidos;
+
+            } catch (error) {
+                console.error('Error en Gemini AI:', error);
+                throw error;
+            }
+        }
+
+        // ===================================================================
+        // LLENAR FORMULARIO Y MOSTRAR CONFIANZA
+        // ===================================================================
+        function llenarFormulario(datos) {
+            // Función auxiliar para mostrar indicador de confianza
+            function setConfidenceIndicator(fieldName, confidence) {
+                const element = document.getElementById(`conf_${fieldName}`);
+                if (!element || confidence === undefined) return;
+                
+                let className = 'confidence-low';
+                let text = '⚠️';
+                
+                if (confidence >= 0.8) {
+                    className = 'confidence-high';
+                    text = '✓';
+                } else if (confidence >= 0.6) {
+                    className = 'confidence-medium';
+                    text = '?';
+                }
+                
+                element.innerHTML = `<span class="confidence-indicator ${className}">${text}</span>`;
+            }
+
+            // Finado
+            document.getElementById('finado_nombre').value = datos.finado.nombre || '';
+            setConfidenceIndicator('finado_nombre', datos.confidence?.finado_nombre);
+            
+            document.getElementById('finado_edad').value = datos.finado.edad || '';
+            setConfidenceIndicator('finado_edad', datos.confidence?.finado_edad);
+            
+            document.getElementById('finado_fecha_nacimiento').value = datos.finado.fecha_nacimiento || '';
+            document.getElementById('finado_fecha_defuncion').value = datos.finado.fecha_defuncion || '';
+            document.getElementById('finado_curp').value = datos.finado.curp || '';
+            document.getElementById('finado_lugar_defuncion').value = datos.finado.lugar_defuncion || '';
+
+            // Responsable
+            document.getElementById('responsable_nombre').value = datos.responsable.nombre || '';
+            setConfidenceIndicator('responsable_nombre', datos.confidence?.responsable_nombre);
+            
+            document.getElementById('responsable_parentesco').value = datos.responsable.parentesco || '';
+            document.getElementById('responsable_telefono').value = datos.responsable.telefono || '';
+            document.getElementById('responsable_email').value = datos.responsable.email || '';
+            document.getElementById('responsable_direccion').value = datos.responsable.direccion || '';
+
+            // Servicio
+            document.getElementById('servicio_tipo').value = datos.servicio.tipo || '';
+            setConfidenceIndicator('servicio_tipo', datos.confidence?.servicio_tipo);
+            
+            document.getElementById('servicio_capilla').value = datos.servicio.capilla || '';
+            document.getElementById('servicio_fecha').value = datos.servicio.fecha || '';
+            document.getElementById('servicio_horario').value = datos.servicio.horario || '';
+            document.getElementById('servicio_costo').value = datos.servicio.costo || '';
+            document.getElementById('servicio_observaciones').value = datos.servicio.observaciones || '';
+        }
+
+        // ===================================================================
+        // GUARDAR EXPEDIENTE
+        // ===================================================================
+        document.getElementById('expedienteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const expedienteData = {
+                numero: document.getElementById('expedienteNumber').textContent.split(': ')[1],
+                tipo: serviceType,
+                fecha_creacion: new Date().toISOString(),
+                archivo_procesado: currentFile ? currentFile.name : null,
+                procesado_con_ia: true,
+                finado: {
+                    nombre: document.getElementById('finado_nombre').value,
+                    edad: document.getElementById('finado_edad').value,
+                    fecha_nacimiento: document.getElementById('finado_fecha_nacimiento').value,
+                    fecha_defuncion: document.getElementById('finado_fecha_defuncion').value,
+                    curp: document.getElementById('finado_curp').value,
+                    lugar_defuncion: document.getElementById('finado_lugar_defuncion').value
+                },
+                responsable: {
+                    nombre: document.getElementById('responsable_nombre').value,
+                    parentesco: document.getElementById('responsable_parentesco').value,
+                    telefono: document.getElementById('responsable_telefono').value,
+                    email: document.getElementById('responsable_email').value,
+                    direccion: document.getElementById('responsable_direccion').value
+                },
+                servicio: {
+                    folio: document.getElementById('servicio_folio').value,
+                    tipo: document.getElementById('servicio_tipo').value,
+                    capilla: document.getElementById('servicio_capilla').value,
+                    fecha: document.getElementById('servicio_fecha').value,
+                    horario: document.getElementById('servicio_horario').value,
+                    costo: document.getElementById('servicio_costo').value,
+                    observaciones: document.getElementById('servicio_observaciones').value
+                }
+            };
+
+            currentExpediente = expedienteData;
+
+            console.log('Expediente validado y guardado:', expedienteData);
+            
+            showAlert('success', '✅ Expediente guardado correctamente. Los datos validados están listos para enviar a Google Sheets.');
+            
+            // Aquí conectarías con Make/Zapier para enviar a Google Sheets
+        });
+
+        // ===================================================================
+        // EXPORTAR DATOS
+        // ===================================================================
+        function exportarCSV() {
+            if (!currentExpediente) {
+                showAlert('error', '❌ Primero debes guardar el expediente.');
+                return;
+            }
+
+            const csv = convertirACSV(currentExpediente);
+            descargarArchivo(csv, `expediente_${currentExpediente.numero}.csv`, 'text/csv');
+            showAlert('success', '✅ Datos exportados a CSV correctamente.');
+        }
+
+        function exportarJSON() {
+            if (!currentExpediente) {
+                showAlert('error', '❌ Primero debes guardar el expediente.');
+                return;
+            }
+
+            const json = JSON.stringify(currentExpediente, null, 2);
+            descargarArchivo(json, `expediente_${currentExpediente.numero}.json`, 'application/json');
+            showAlert('success', '✅ Datos exportados a JSON correctamente.');
+        }
+
+        function convertirACSV(data) {
+            const rows = [
+                ['Campo', 'Valor'],
+                ['Número de Expediente', data.numero],
+                ['Tipo de Servicio', data.tipo],
+                ['Fecha de Creación', new Date(data.fecha_creacion).toLocaleString('es-MX')],
+                ['Procesado con IA', data.procesado_con_ia ? 'Sí' : 'No'],
+                [''],
+                ['FINADO'],
+                ['Nombre', data.finado.nombre],
+                ['Edad', data.finado.edad],
+                ['Fecha de Nacimiento', data.finado.fecha_nacimiento],
+                ['Fecha de Defunción', data.finado.fecha_defuncion],
+                ['CURP', data.finado.curp],
+                ['Lugar de Defunción', data.finado.lugar_defuncion],
+                [''],
+                ['RESPONSABLE'],
+                ['Nombre', data.responsable.nombre],
+                ['Parentesco', data.responsable.parentesco],
+                ['Teléfono', data.responsable.telefono],
+                ['Email', data.responsable.email],
+                ['Dirección', data.responsable.direccion],
+                [''],
+                ['SERVICIO'],
+                ['Folio', data.servicio.folio],
+                ['Tipo', data.servicio.tipo],
+                ['Capilla', data.servicio.capilla],
+                ['Fecha', data.servicio.fecha],
+                ['Horario', data.servicio.horario],
+                ['Costo', data.servicio.costo],
+                ['Observaciones', data.servicio.observaciones]
+            ];
+
+            return rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+        }
+
+        function descargarArchivo(contenido, nombreArchivo, tipo) {
+            const blob = new Blob([contenido], { type: tipo });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nombreArchivo;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ===================================================================
+        // UTILIDADES
+        // ===================================================================
+        function generateExpedienteNumber() {
+            const date = new Date();
+            const year = date.getFullYear();
+            const random = Math.floor(Math.random() * 90000) + 10000;
+            const numero = `EXP-${year}-${random}`;
+            document.getElementById('expedienteNumber').textContent = `📁 Expediente: ${numero}`;
+            document.getElementById('servicio_folio').value = numero;
+            document.getElementById('expedienteFecha').textContent = date.toLocaleDateString('es-MX');
+        }
+
+        function showAlert(type, message) {
+            const alertBox = document.getElementById('alertBox');
+            const alertIcon = document.getElementById('alertIcon');
+            const alertMessage = document.getElementById('alertMessage');
+
+            alertBox.className = 'alert active alert-' + type;
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️',
+                warning: '⚠️'
+            };
+            
+            alertIcon.textContent = icons[type] || 'ℹ️';
+            alertMessage.textContent = message;
+
+            setTimeout(() => {
+                alertBox.classList.remove('active');
+            }, 6000);
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    // Remover el prefijo "data:image/xxx;base64," para obtener solo el base64
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</body>
+</html>
