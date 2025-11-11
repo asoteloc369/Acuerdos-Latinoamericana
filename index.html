@@ -714,12 +714,16 @@
 
     <script>
         // ===================================================================
-        // CONFIGURACIÓN DE APIs - MANTENER ESTAS KEYS SEGURAS
+        // CONFIGURACIÓN DEL PROXY
         // ===================================================================
-        const API_KEYS = {
-            GOOGLE_VISION: 'AIzaSyCZn3hG4VVaW6nc8ocs-yMuX3v9BeHRjew',
-            GEMINI_AI: 'AIzaSyDg2wwukAcfLnhZvENUx1Y39hq8QSjuMRQ'
-        };
+        // IMPORTANTE: Reemplaza esta URL con la URL de tu Web App de Google Apps Script
+        // La URL debe verse algo así: https://script.google.com/macros/s/AKfycby...../exec
+        const PROXY_URL = 'TU_URL_DEL_PROXY_AQUI';
+        
+        // Si ves este mensaje de error, significa que aún no has configurado la URL del proxy
+        if (PROXY_URL === 'TU_URL_DEL_PROXY_AQUI') {
+            console.warn('⚠️ ATENCIÓN: Debes reemplazar PROXY_URL con la URL de tu Google Apps Script Web App');
+        }
 
         // Variables globales
         let currentFile = null;
@@ -896,45 +900,42 @@
         }
 
         // ===================================================================
-        // GOOGLE CLOUD VISION - EXTRACCIÓN DE TEXTO (OCR)
+        // GOOGLE CLOUD VISION - EXTRACCIÓN DE TEXTO (OCR) VÍA PROXY
         // ===================================================================
         async function extractTextWithVision(file) {
             try {
+                // Verificar que se haya configurado la URL del proxy
+                if (PROXY_URL === 'TU_URL_DEL_PROXY_AQUI') {
+                    throw new Error('Debes configurar la URL del proxy en el código. Busca la línea que dice PROXY_URL y reemplázala con tu URL de Google Apps Script.');
+                }
+
                 // Convertir archivo a base64
                 const base64Image = await fileToBase64(file);
                 
-                // Llamar a Google Vision API
-                const response = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${API_KEYS.GOOGLE_VISION}`, {
+                // Enviar petición al proxy en lugar de directamente a Google Vision
+                const response = await fetch(PROXY_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        requests: [{
-                            image: {
-                                content: base64Image
-                            },
-                            features: [{
-                                type: 'DOCUMENT_TEXT_DETECTION',
-                                maxResults: 1
-                            }]
-                        }]
+                        action: 'vision',
+                        imageData: base64Image
                     })
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`Error en Google Vision: ${errorData.error?.message || 'Error desconocido'}`);
+                    throw new Error(`Error en la petición al proxy: ${response.status} ${response.statusText}`);
                 }
 
                 const data = await response.json();
                 
-                if (!data.responses || !data.responses[0] || !data.responses[0].fullTextAnnotation) {
-                    throw new Error('No se detectó texto en el documento');
+                if (data.error) {
+                    throw new Error(data.message || 'Error al procesar con Vision API');
                 }
 
-                const extractedText = data.responses[0].fullTextAnnotation.text;
-                console.log('Texto extraído:', extractedText);
+                const extractedText = data.text;
+                console.log('Texto extraído exitosamente:', extractedText.substring(0, 100) + '...');
                 
                 return extractedText;
 
@@ -945,101 +946,39 @@
         }
 
         // ===================================================================
-        // GEMINI AI - EXTRACCIÓN INTELIGENTE DE DATOS
+        // GEMINI AI - EXTRACCIÓN INTELIGENTE DE DATOS VÍA PROXY
         // ===================================================================
         async function extractDataWithGemini(text) {
             try {
-                const prompt = `Eres un asistente experto en extraer datos de formatos de acuerdos funerarios de Latinoamericana Recinto Funeral.
+                // Verificar que se haya configurado la URL del proxy
+                if (PROXY_URL === 'TU_URL_DEL_PROXY_AQUI') {
+                    throw new Error('Debes configurar la URL del proxy en el código.');
+                }
 
-A continuación te proporciono el texto extraído de un formato de acuerdos. Tu tarea es identificar y extraer TODA la información relevante y estructurarla en formato JSON.
-
-TEXTO DEL DOCUMENTO:
-${text}
-
-INSTRUCCIONES CRÍTICAS:
-1. Extrae TODOS los datos que encuentres relacionados con:
-   - Finado: nombre completo, edad, fecha de nacimiento, fecha de defunción, CURP, lugar de defunción
-   - Responsable/Declarante: nombre completo, parentesco, teléfono, email, dirección
-   - Servicio: tipo de servicio, capilla, fecha del servicio, horario, costo total
-
-2. Si un campo no está en el documento, usa una cadena vacía ""
-3. Para fechas, usa formato DD/MM/AAAA
-4. Para teléfonos, mantén el formato original
-5. Para costos, incluye el símbolo $ y formato con comas
-
-IMPORTANTE: Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional antes o después. El JSON debe tener exactamente esta estructura:
-
-{
-  "finado": {
-    "nombre": "",
-    "edad": "",
-    "fecha_nacimiento": "",
-    "fecha_defuncion": "",
-    "curp": "",
-    "lugar_defuncion": ""
-  },
-  "responsable": {
-    "nombre": "",
-    "parentesco": "",
-    "telefono": "",
-    "email": "",
-    "direccion": ""
-  },
-  "servicio": {
-    "tipo": "",
-    "capilla": "",
-    "fecha": "",
-    "horario": "",
-    "costo": "",
-    "observaciones": ""
-  },
-  "confidence": {
-    "overall": 0.0,
-    "finado_nombre": 0.0,
-    "finado_edad": 0.0,
-    "responsable_nombre": 0.0,
-    "servicio_tipo": 0.0
-  }
-}
-
-El campo "confidence" debe contener valores entre 0.0 y 1.0 indicando tu nivel de confianza en la extracción de cada dato (1.0 = muy seguro, 0.5 = incierto, 0.0 = no encontrado).`;
-
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEYS.GEMINI_AI}`, {
+                // Enviar petición al proxy en lugar de directamente a Gemini AI
+                const response = await fetch(PROXY_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        contents: [{
-                            parts: [{
-                                text: prompt
-                            }]
-                        }],
-                        generationConfig: {
-                            temperature: 0.1,
-                            maxOutputTokens: 2048,
-                        }
+                        action: 'gemini',
+                        text: text
                     })
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`Error en Gemini AI: ${errorData.error?.message || 'Error desconocido'}`);
+                    throw new Error(`Error en la petición al proxy: ${response.status} ${response.statusText}`);
                 }
 
-                const data = await response.json();
+                const responseData = await response.json();
                 
-                if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-                    throw new Error('No se recibió respuesta de Gemini AI');
+                if (responseData.error) {
+                    throw new Error(responseData.message || 'Error al procesar con Gemini AI');
                 }
 
-                let responseText = data.candidates[0].content.parts[0].text;
-                console.log('Respuesta de Gemini:', responseText);
-
-                // Limpiar la respuesta por si tiene markdown o texto extra
-                responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-                const datosExtraidos = JSON.parse(responseText);
+                const datosExtraidos = responseData.data;
+                console.log('Datos extraídos por Gemini:', datosExtraidos);
                 
                 // Calcular confianza general
                 if (datosExtraidos.confidence) {
